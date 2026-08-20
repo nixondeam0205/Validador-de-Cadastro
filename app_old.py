@@ -1,5 +1,80 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+import os
+import sys
+import requests
+
+
+VERSAO_ATUAL = "1.4.3"
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+def verificar_atualizacao():
+
+    try:
+
+        resposta = requests.get(
+            "https://raw.githubusercontent.com/nixondeam0205/Validador-de-Cadastro/main/version.json",
+            timeout=5
+        )
+
+        dados = resposta.json()
+
+        versao_nova = dados["versao"]
+
+        if versao_nova != VERSAO_ATUAL:
+
+            baixar = messagebox.askyesno(
+                "Atualização disponível",
+                f"Sua versão: {VERSAO_ATUAL}\n\n"
+                f"Nova versão: {versao_nova}\n\n"
+                "Deseja baixar agora?"
+            )
+
+            if baixar:
+
+                pasta_downloads = os.path.join(
+                    os.path.expanduser("~"),
+                    "Downloads"
+                )
+
+                caminho_arquivo = os.path.join(
+                    pasta_downloads,
+                    f"ValidadorCadastro_v{versao_nova}.exe"
+                )
+
+                download = requests.get(
+                    dados["download"],
+                    stream=True
+                )
+
+                with open(caminho_arquivo, "wb") as arquivo:
+
+                    for bloco in download.iter_content(
+                        chunk_size=8192
+                    ):
+
+                        if bloco:
+                            arquivo.write(bloco)
+
+                messagebox.showinfo(
+                    "Download concluído",
+                    f"Arquivo salvo em:\n\n{caminho_arquivo}\n\n"
+                    "Feche esta versão e execute a nova."
+                )
+
+    except Exception as erro:
+
+        print(
+            f"Erro ao verificar atualização: {erro}"
+        )
 
 def converter_status(valor):
 
@@ -10,7 +85,9 @@ def converter_status(valor):
     "Inapto": "❌ Inapto",
     "Vencido": "⚠️ Vencido",
     "Sem checklist": "❌ Sem checklist",
+
     "Cadastro": "✅ Cadastro",
+    "Validar": "⚠️ Validar",
     "Atualizar cadastro": "⚠️ Atualizar cadastro",
     "Sem cadastro": "❌ Sem cadastro"
 }
@@ -18,6 +95,36 @@ def converter_status(valor):
     return mapa.get(valor, valor)
 
 def gerar_validacao():
+
+    campos_obrigatorios = [
+        brk_var.get(),
+        onboarding_var.get(),
+        et_var.get(),
+        tdd_var.get(),
+        checklist_var.get(),
+        cavalo_brk_var.get(),
+        fl_motorista_var.get(),
+            fl_cavalo_var.get(),
+            fl_checklist_var.get(),
+            lweb_motorista_var.get(),
+        lweb_cavalo_var.get()
+    ]
+
+    if possui_carreta_var.get():
+        campos_obrigatorios.extend([
+            carreta_brk_var.get(),
+            fl_carreta_var.get(),
+            lweb_carreta_var.get()
+        ])
+
+    if (
+    "(SELECIONE)" in campos_obrigatorios
+    ):
+        messagebox.showerror(
+            "Erro",
+            "Existem campos não preenchidos."
+        )
+        return
 
     motorista1 = motorista1_entry.get().strip()
     motorista2 = motorista2_entry.get().strip()
@@ -27,6 +134,19 @@ def gerar_validacao():
     cavalo = cavalo_entry.get().strip().upper()
     carreta = carreta_entry.get().strip().upper()
     ano_cavalo = ano_cavalo_entry.get().strip()
+
+    status_ano = ""
+
+    ano_minimo = int(ano_minimo_var.get())
+
+    if ano_cavalo.isdigit():
+        if int(ano_cavalo) < ano_minimo:
+            status_ano = " ❌ INAPTO"
+
+    ano_apto = (
+    ano_cavalo.isdigit()
+    and int(ano_cavalo) >= ano_minimo
+)
 
     tem_carreta = possui_carreta_var.get()
 
@@ -69,6 +189,89 @@ def gerar_validacao():
     )
     else:
         placas = cavalo
+    
+    # STATUS
+
+    status_ok = (
+        brk_var.get() == "OK"
+        and onboarding_var.get() == "OK"
+        and et_var.get() == "OK"
+        and tdd_var.get() == "OK"
+        and checklist_var.get() == "OK"
+        and cavalo_brk_var.get() == "OK"
+        and ano_apto
+        and (
+            not tem_carreta
+            or carreta_brk_var.get() == "OK"
+        )
+    )
+
+    if status_ok:
+        status_label.config(
+            text="🟢 STATUS",
+            fg="green"
+        )
+
+        status_titulo = "🟢 STATUS"
+
+    else:
+        status_label.config(
+            text="🔴 STATUS",
+            fg="red"
+        )
+
+        status_titulo = "🔴 STATUS"
+
+# FROTA LEGAL
+
+    frota_ok = (
+        fl_motorista_var.get() == "Cadastro"
+        and fl_cavalo_var.get() == "Cadastro"
+        and fl_checklist_var.get() == "OK"
+        and (
+            not tem_carreta
+            or fl_carreta_var.get() == "Cadastro"
+        )
+    )
+
+    if frota_ok:
+        frota_label.config(
+            text="🟢 FROTA LEGAL",
+            fg="green"
+        )
+
+        frota_titulo = "🟢 FROTA LEGAL"
+
+    else:
+        frota_label.config(
+            text="🔴 FROTA LEGAL",
+            fg="red"
+        )
+
+        frota_titulo = "🔴 FROTA LEGAL"
+    
+    if (
+        lweb_motorista_var.get() == "Cadastro"
+        and lweb_cavalo_var.get() == "Cadastro"
+        and (
+        not tem_carreta
+        or lweb_carreta_var.get() == "Cadastro"
+        )
+    ):
+        lweb_label.config(
+        text="🟢 LWEB",
+        fg="green"
+        )
+
+        lweb_status = "🟢 LWEB"
+
+    else:
+        lweb_label.config(
+        text="🔴 LWEB",
+        fg="red"
+        )
+
+        lweb_status = "🔴 LWEB"
 
     texto = f"""🚛 VALIDAÇÃO DE CADASTRO
 
@@ -78,7 +281,7 @@ def gerar_validacao():
 {placas}
 
 ━━━━━━━━━━━━━━━
-📋 STATUS
+{status_titulo}
 
 BRK: {converter_status(brk_var.get())}
 Onboarding: {converter_status(onboarding_var.get())}
@@ -86,28 +289,24 @@ ET: {converter_status(et_var.get())}
 TDD: {converter_status(tdd_var.get())}
 Checklist: {converter_status(checklist_var.get())}
 Placa Cavalo BRK: {converter_status(cavalo_brk_var.get())}{status_carreta}
-Ano do Cavalo: {ano_cavalo}
+Ano do Cavalo: {ano_cavalo}{status_ano}
 
 ━━━━━━━━━━━━━━━
-🚛 FROTA LEGAL
+{frota_titulo}
 
 Motorista: {converter_status(fl_motorista_var.get())}
 Cavalo: {converter_status(fl_cavalo_var.get())}{frota_carreta}
+Checklist: {converter_status(fl_checklist_var.get())}
 
 ━━━━━━━━━━━━━━━
-⚠️ LWEB
+{lweb_status}
 
 Motorista: {converter_status(lweb_motorista_var.get())}
 Cavalo: {converter_status(lweb_cavalo_var.get())}{lweb_carreta}
 """
 
     if (
-        lweb_motorista_var.get() == "Sem cadastro"
-        or lweb_cavalo_var.get() == "Sem cadastro"
-        or (
-            tem_carreta
-            and lweb_carreta_var.get() == "Sem cadastro"
-        )
+    lweb_motorista_var.get() == "Sem cadastro"
     ):
 
         texto += """
@@ -152,6 +351,38 @@ Ligações: +55 85 99666-0104
     janela.clipboard_append(texto)
     janela.update()
 
+def preencher_status_ok(event=None):
+
+    brk_var.set("OK")
+    onboarding_var.set("OK")
+    et_var.set("OK")
+    tdd_var.set("OK")
+    checklist_var.set("OK")
+
+    cavalo_brk_var.set("OK")
+
+    if possui_carreta_var.get():
+        carreta_brk_var.set("OK")
+
+
+def preencher_frota_ok(event=None):
+
+    fl_motorista_var.set("Cadastro")
+    fl_cavalo_var.set("Cadastro")
+    fl_checklist_var.set("OK")
+
+    if possui_carreta_var.get():
+        fl_carreta_var.set("Cadastro")
+
+
+def preencher_lweb_ok(event=None):
+
+    lweb_motorista_var.set("Cadastro")
+    lweb_cavalo_var.set("Cadastro")
+
+    if possui_carreta_var.get():
+        lweb_carreta_var.set("Cadastro")
+
 def limpar_campos():
 
     motorista1_entry.delete(0, tk.END)
@@ -164,22 +395,38 @@ def limpar_campos():
     ano_cavalo_entry.delete(0, tk.END)
     possui_carreta_var.set(True)
 
-    brk_var.set("OK")
-    onboarding_var.set("OK")
-    et_var.set("OK")
-    tdd_var.set("OK")
-    checklist_var.set("OK")
+    brk_var.set("(SELECIONE)")
+    onboarding_var.set("(SELECIONE)")
+    et_var.set("(SELECIONE)")
+    tdd_var.set("(SELECIONE)")
+    checklist_var.set("(SELECIONE)")
 
-    cavalo_brk_var.set("OK")
-    carreta_brk_var.set("OK")
+    cavalo_brk_var.set("(SELECIONE)")
+    carreta_brk_var.set("(SELECIONE)")
 
-    fl_motorista_var.set("Cadastro")
-    fl_cavalo_var.set("Cadastro")
-    fl_carreta_var.set("Cadastro")
+    fl_motorista_var.set("(SELECIONE)")
+    fl_cavalo_var.set("(SELECIONE)")
+    fl_carreta_var.set("(SELECIONE)")
+    fl_checklist_var.set("(SELECIONE)")
 
-    lweb_motorista_var.set("Cadastro")
-    lweb_cavalo_var.set("Cadastro")
-    lweb_carreta_var.set("Cadastro")
+    lweb_motorista_var.set("(SELECIONE)")
+    lweb_cavalo_var.set("(SELECIONE)")
+    lweb_carreta_var.set("(SELECIONE)")
+
+    status_label.config(
+        text="🟢 STATUS",
+        fg="green"
+    )
+
+    frota_label.config(
+        text="🟢 FROTA LEGAL",
+        fg="green"
+    )
+
+    lweb_label.config(
+        text="🟢 LWEB",
+        fg="green"
+    )
 
     preview_text.delete("1.0", tk.END)
 
@@ -223,11 +470,69 @@ def formatar_cpf(event):
     widget.delete(0, tk.END)
     widget.insert(0, cpf)
 
+def formatar_nome(event):
+
+    widget = event.widget
+
+    texto = widget.get()
+
+    palavras = texto.split()
+
+    texto_formatado = " ".join(
+        palavra.capitalize()
+        for palavra in palavras
+    )
+
+    cursor = widget.index(tk.INSERT)
+
+    widget.delete(0, tk.END)
+    widget.insert(0, texto_formatado)
+
+    widget.icursor(cursor)
+
 
 janela = tk.Tk()
 
+verificar_atualizacao()
+
 janela.title("Validador de Cadastro")
 janela.geometry("850x900")
+
+logo_img = Image.open(
+    resource_path("losung.png")
+)
+
+logo_img = logo_img.resize(
+    (160, 55)
+)
+
+logo_tk = ImageTk.PhotoImage(logo_img)
+
+creditos = tk.Label(
+    janela,
+    text="Desenvolvido por: Nixon Deam da Silva Cavalcanti | Versão: 1.4.3",
+    font=("Arial", 8),
+    fg="gray40"
+)
+
+creditos.pack(
+    anchor="w",
+    padx=10,
+    pady=(5, 0)
+)
+
+logo_label = tk.Label(
+    janela,
+    image=logo_tk,
+    borderwidth=0
+)
+
+logo_label.place(
+    relx=1.0,
+    x=-20,
+    y=10,
+    anchor="ne"
+)
 
 titulo = tk.Label(
     janela,
@@ -235,7 +540,16 @@ titulo = tk.Label(
     font=("Arial", 16, "bold")
 )
 
-titulo.pack(pady=10)
+titulo.pack(pady=(10, 0))
+
+atalhos_label = tk.Label(
+    janela,
+    text="⚡ F1 = STATUS OK    ⚡ F2 = FROTA OK    ⚡ F3 = LWEB OK",
+    font=("Arial", 9, "bold"),
+    fg="darkgreen"
+)
+
+atalhos_label.pack(pady=(0, 10))
 
 frame = tk.Frame(janela)
 frame.pack(pady=5)
@@ -249,6 +563,11 @@ tk.Label(frame, text="Motorista 1").grid(row=0, column=0, sticky="w")
 motorista1_entry = tk.Entry(frame, width=30)
 motorista1_entry.grid(row=0, column=1)
 
+motorista1_entry.bind(
+    "<FocusOut>",
+    formatar_nome
+)
+
 tk.Label(frame, text="CPF").grid(row=0, column=2, padx=(10,0))
 
 cpf1_entry = tk.Entry(frame, width=18)
@@ -259,6 +578,11 @@ tk.Label(frame, text="Motorista 2").grid(row=1, column=0, sticky="w")
 
 motorista2_entry = tk.Entry(frame, width=30)
 motorista2_entry.grid(row=1, column=1)
+
+motorista2_entry.bind(
+    "<FocusOut>",
+    formatar_nome
+)
 
 tk.Label(frame, text="CPF").grid(row=1, column=2, padx=(10,0))
 
@@ -290,25 +614,38 @@ chk_carreta.grid(row=3, column=2, padx=10, sticky="w")
 # STATUS
 # =========================
 
-tk.Label(
+status_label = tk.Label(
     frame,
-    text="📋 STATUS",
-    font=("Arial", 11, "bold")
-).grid(row=4, column=0, pady=10)
+    text="🟢 STATUS",
+    font=("Arial", 11, "bold"),
+    fg="green",
+    width=20,
+    anchor="w"
+)
+
+status_label.grid(
+    row=4,
+    column=0,
+    pady=10,
+    sticky="w"
+)
 
 status_padrao = [
+    "(SELECIONE)",
     "OK",
     "Renovar",
     "Inapto"
 ]
 
 checklist_opcoes = [
+    "(SELECIONE)",
     "OK",
     "Vencido",
     "Sem checklist"
 ]
 
 placa_opcoes = [
+    "(SELECIONE)",
     "OK",
     "Renovar",
     "Em análise",
@@ -320,9 +657,10 @@ placa_opcoes = [
 
 tk.Label(frame, text="BRK").grid(row=5, column=0, sticky="w")
 
-brk_var = tk.StringVar(value="OK")
+brk_var = tk.StringVar(value="(SELECIONE)")
 
 brk_opcoes = [
+    "(SELECIONE)",
     "OK",
     "Renovar",
     "Em análise",
@@ -342,7 +680,7 @@ ttk.Combobox(
 
 tk.Label(frame, text="Onboarding").grid(row=6, column=0, sticky="w")
 
-onboarding_var = tk.StringVar(value="OK")
+onboarding_var = tk.StringVar(value="(SELECIONE)")
 
 ttk.Combobox(
     frame,
@@ -356,7 +694,7 @@ ttk.Combobox(
 
 tk.Label(frame, text="ET").grid(row=7, column=0, sticky="w")
 
-et_var = tk.StringVar(value="OK")
+et_var = tk.StringVar(value="(SELECIONE)")
 
 ttk.Combobox(
     frame,
@@ -370,7 +708,7 @@ ttk.Combobox(
 
 tk.Label(frame, text="TDD").grid(row=8, column=0, sticky="w")
 
-tdd_var = tk.StringVar(value="OK")
+tdd_var = tk.StringVar(value="(SELECIONE)")
 
 ttk.Combobox(
     frame,
@@ -384,7 +722,7 @@ ttk.Combobox(
 
 tk.Label(frame, text="Checklist").grid(row=9, column=0, sticky="w")
 
-checklist_var = tk.StringVar(value="OK")
+checklist_var = tk.StringVar(value="(SELECIONE)")
 
 ttk.Combobox(
     frame,
@@ -398,7 +736,7 @@ ttk.Combobox(
 
 tk.Label(frame, text="Placa Cavalo BRK").grid(row=10, column=0, sticky="w")
 
-cavalo_brk_var = tk.StringVar(value="OK")
+cavalo_brk_var = tk.StringVar(value="(SELECIONE)")
 
 ttk.Combobox(
     frame,
@@ -412,7 +750,7 @@ ttk.Combobox(
 
 tk.Label(frame, text="Placa Carreta BRK").grid(row=11, column=0, sticky="w")
 
-carreta_brk_var = tk.StringVar(value="OK")
+carreta_brk_var = tk.StringVar(value="(SELECIONE)")
 
 ttk.Combobox(
     frame,
@@ -429,25 +767,66 @@ tk.Label(frame, text="Ano do Cavalo").grid(row=12, column=0, sticky="w")
 ano_cavalo_entry = tk.Entry(frame, width=25)
 ano_cavalo_entry.grid(row=12, column=1)
 
+# Ano mínimo permitido
+
+tk.Label(frame, text="Ano mínimo").grid(row=12, column=2, padx=(10, 0))
+
+ano_minimo_var = tk.StringVar(value="2013")
+
+ano_minimo_opcoes = [
+    "2008",
+    "2009",
+    "2010",
+    "2011",
+    "2012",
+    "2013",
+    "2014",
+    "2015",
+    "2016",
+    "2017",
+    "2018"
+]
+
+ttk.Combobox(
+    frame,
+    textvariable=ano_minimo_var,
+    values=ano_minimo_opcoes,
+    state="readonly",
+    width=10
+).grid(row=12, column=3)
+
 # =========================
 # FROTA LEGAL
 # =========================
 
-tk.Label(
+frota_label = tk.Label(
     frame,
-    text="🚛 FROTA LEGAL",
-    font=("Arial", 11, "bold")
-).grid(row=13, column=0, pady=10)
+    text="🟢 FROTA LEGAL",
+    font=("Arial", 11, "bold"),
+    fg="green",
+    width=20,
+    anchor="w"
+)
+
+frota_label.grid(
+    row=13,
+    column=0,
+    pady=10,
+    sticky="w"
+)
 
 cadastro_opcoes = [
+    "(SELECIONE)",
     "Cadastro",
+    "Validar",
     "Atualizar cadastro",
     "Sem cadastro"
 ]
 
-fl_motorista_var = tk.StringVar(value="Cadastro")
-fl_cavalo_var = tk.StringVar(value="Cadastro")
-fl_carreta_var = tk.StringVar(value="Cadastro")
+fl_motorista_var = tk.StringVar(value="(SELECIONE)")
+fl_cavalo_var = tk.StringVar(value="(SELECIONE)")
+fl_carreta_var = tk.StringVar(value="(SELECIONE)")
+fl_checklist_var = tk.StringVar(value="(SELECIONE)")
 
 tk.Label(frame, text="Motorista").grid(row=14, column=0, sticky="w")
 ttk.Combobox(frame, textvariable=fl_motorista_var,
@@ -456,10 +835,13 @@ ttk.Combobox(frame, textvariable=fl_motorista_var,
              width=25).grid(row=14, column=1)
 
 tk.Label(frame, text="Cavalo").grid(row=15, column=0, sticky="w")
-ttk.Combobox(frame, textvariable=fl_cavalo_var,
-             values=cadastro_opcoes,
-             state="readonly",
-             width=25).grid(row=15, column=1)
+ttk.Combobox(
+    frame,
+    textvariable=fl_cavalo_var,
+    values=cadastro_opcoes,
+    state="readonly",
+    width=25
+).grid(row=15, column=1)
 
 tk.Label(frame, text="Carreta").grid(row=16, column=0, sticky="w")
 ttk.Combobox(frame, textvariable=fl_carreta_var,
@@ -467,37 +849,57 @@ ttk.Combobox(frame, textvariable=fl_carreta_var,
              state="readonly",
              width=25).grid(row=16, column=1)
 
+tk.Label(frame, text="Checklist").grid(row=17, column=0, sticky="w")
+
+ttk.Combobox(
+    frame,
+    textvariable=fl_checklist_var,
+    values=checklist_opcoes,
+    state="readonly",
+    width=25
+).grid(row=17, column=1)
+
 # =========================
 # LWEB
 # =========================
 
-tk.Label(
+lweb_label = tk.Label(
     frame,
-    text="⚠️ LWEB",
-    font=("Arial", 11, "bold")
-).grid(row=17, column=0, pady=10)
+    text="🟢 LWEB",
+    font=("Arial", 11, "bold"),
+    fg="green",
+    width=20,
+    anchor="w"
+)
 
-lweb_motorista_var = tk.StringVar(value="Cadastro")
-lweb_cavalo_var = tk.StringVar(value="Cadastro")
-lweb_carreta_var = tk.StringVar(value="Cadastro")
+lweb_label.grid(
+    row=18,
+    column=0,
+    pady=10,
+    sticky="w"
+)
 
-tk.Label(frame, text="Motorista").grid(row=18, column=0, sticky="w")
+lweb_motorista_var = tk.StringVar(value="(SELECIONE)")
+lweb_cavalo_var = tk.StringVar(value="(SELECIONE)")
+lweb_carreta_var = tk.StringVar(value="(SELECIONE)")
+
+tk.Label(frame, text="Motorista").grid(row=19, column=0, sticky="w")
 ttk.Combobox(frame, textvariable=lweb_motorista_var,
-             values=cadastro_opcoes,
-             state="readonly",
-             width=25).grid(row=18, column=1)
-
-tk.Label(frame, text="Cavalo").grid(row=19, column=0, sticky="w")
-ttk.Combobox(frame, textvariable=lweb_cavalo_var,
              values=cadastro_opcoes,
              state="readonly",
              width=25).grid(row=19, column=1)
 
-tk.Label(frame, text="Carreta").grid(row=20, column=0, sticky="w")
-ttk.Combobox(frame, textvariable=lweb_carreta_var,
+tk.Label(frame, text="Cavalo").grid(row=20, column=0, sticky="w")
+ttk.Combobox(frame, textvariable=lweb_cavalo_var,
              values=cadastro_opcoes,
              state="readonly",
              width=25).grid(row=20, column=1)
+
+tk.Label(frame, text="Carreta").grid(row=21, column=0, sticky="w")
+ttk.Combobox(frame, textvariable=lweb_carreta_var,
+             values=cadastro_opcoes,
+             state="readonly",
+             width=25).grid(row=21, column=1)
 
 # =========================
 # BOTÕES
@@ -552,5 +954,9 @@ preview_text = tk.Text(
 )
 
 preview_text.pack(pady=10)
+
+janela.bind("<F1>", preencher_status_ok)
+janela.bind("<F2>", preencher_frota_ok)
+janela.bind("<F3>", preencher_lweb_ok)
 
 janela.mainloop()
