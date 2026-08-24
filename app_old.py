@@ -6,7 +6,7 @@ import sys
 import requests
 
 
-VERSAO_ATUAL = "1.4.3"
+VERSAO_ATUAL = "1.4.4"
 
 def resource_path(relative_path):
     try:
@@ -103,17 +103,14 @@ def gerar_validacao():
         tdd_var.get(),
         checklist_var.get(),
         cavalo_brk_var.get(),
-        fl_motorista_var.get(),
-            fl_cavalo_var.get(),
-            fl_checklist_var.get(),
-            lweb_motorista_var.get(),
+        fl_checklist_var.get(),
+        lweb_motorista_var.get(),
         lweb_cavalo_var.get()
     ]
 
     if possui_carreta_var.get():
         campos_obrigatorios.extend([
             carreta_brk_var.get(),
-            fl_carreta_var.get(),
             lweb_carreta_var.get()
         ])
 
@@ -151,7 +148,6 @@ def gerar_validacao():
     tem_carreta = possui_carreta_var.get()
 
     status_carreta = ""
-    frota_carreta = ""
     lweb_carreta = ""
 
     if tem_carreta:
@@ -159,11 +155,6 @@ def gerar_validacao():
         status_carreta = (
             f"\nPlaca Carreta BRK: "
             f"{converter_status(carreta_brk_var.get())}"
-        )
-
-        frota_carreta = (
-            f"\nCarreta: "
-            f"{converter_status(fl_carreta_var.get())}"
         )
 
         lweb_carreta = (
@@ -225,13 +216,7 @@ def gerar_validacao():
 # FROTA LEGAL
 
     frota_ok = (
-        fl_motorista_var.get() == "Cadastro"
-        and fl_cavalo_var.get() == "Cadastro"
-        and fl_checklist_var.get() == "OK"
-        and (
-            not tem_carreta
-            or fl_carreta_var.get() == "Cadastro"
-        )
+        fl_checklist_var.get() == "OK"
     )
 
     if frota_ok:
@@ -294,8 +279,6 @@ Ano do Cavalo: {ano_cavalo}{status_ano}
 ━━━━━━━━━━━━━━━
 {frota_titulo}
 
-Motorista: {converter_status(fl_motorista_var.get())}
-Cavalo: {converter_status(fl_cavalo_var.get())}{frota_carreta}
 Checklist: {converter_status(fl_checklist_var.get())}
 
 ━━━━━━━━━━━━━━━
@@ -367,12 +350,7 @@ def preencher_status_ok(event=None):
 
 def preencher_frota_ok(event=None):
 
-    fl_motorista_var.set("Cadastro")
-    fl_cavalo_var.set("Cadastro")
     fl_checklist_var.set("OK")
-
-    if possui_carreta_var.get():
-        fl_carreta_var.set("Cadastro")
 
 
 def preencher_lweb_ok(event=None):
@@ -404,9 +382,6 @@ def limpar_campos():
     cavalo_brk_var.set("(SELECIONE)")
     carreta_brk_var.set("(SELECIONE)")
 
-    fl_motorista_var.set("(SELECIONE)")
-    fl_cavalo_var.set("(SELECIONE)")
-    fl_carreta_var.set("(SELECIONE)")
     fl_checklist_var.set("(SELECIONE)")
 
     lweb_motorista_var.set("(SELECIONE)")
@@ -510,7 +485,7 @@ logo_tk = ImageTk.PhotoImage(logo_img)
 
 creditos = tk.Label(
     janela,
-    text="Desenvolvido por: Nixon Deam da Silva Cavalcanti | Versão: 1.4.3",
+    text="Desenvolvido por: Nixon Deam da Silva Cavalcanti | Versão: 1.4.4",
     font=("Arial", 8),
     fg="gray40"
 )
@@ -823,33 +798,9 @@ cadastro_opcoes = [
     "Sem cadastro"
 ]
 
-fl_motorista_var = tk.StringVar(value="(SELECIONE)")
-fl_cavalo_var = tk.StringVar(value="(SELECIONE)")
-fl_carreta_var = tk.StringVar(value="(SELECIONE)")
 fl_checklist_var = tk.StringVar(value="(SELECIONE)")
 
-tk.Label(frame, text="Motorista").grid(row=14, column=0, sticky="w")
-ttk.Combobox(frame, textvariable=fl_motorista_var,
-             values=cadastro_opcoes,
-             state="readonly",
-             width=25).grid(row=14, column=1)
-
-tk.Label(frame, text="Cavalo").grid(row=15, column=0, sticky="w")
-ttk.Combobox(
-    frame,
-    textvariable=fl_cavalo_var,
-    values=cadastro_opcoes,
-    state="readonly",
-    width=25
-).grid(row=15, column=1)
-
-tk.Label(frame, text="Carreta").grid(row=16, column=0, sticky="w")
-ttk.Combobox(frame, textvariable=fl_carreta_var,
-             values=cadastro_opcoes,
-             state="readonly",
-             width=25).grid(row=16, column=1)
-
-tk.Label(frame, text="Checklist").grid(row=17, column=0, sticky="w")
+tk.Label(frame, text="Checklist").grid(row=14, column=0, sticky="w")
 
 ttk.Combobox(
     frame,
@@ -857,7 +808,7 @@ ttk.Combobox(
     values=checklist_opcoes,
     state="readonly",
     width=25
-).grid(row=17, column=1)
+).grid(row=14, column=1)
 
 # =========================
 # LWEB
@@ -873,7 +824,7 @@ lweb_label = tk.Label(
 )
 
 lweb_label.grid(
-    row=18,
+    row=15,
     column=0,
     pady=10,
     sticky="w"
@@ -883,23 +834,23 @@ lweb_motorista_var = tk.StringVar(value="(SELECIONE)")
 lweb_cavalo_var = tk.StringVar(value="(SELECIONE)")
 lweb_carreta_var = tk.StringVar(value="(SELECIONE)")
 
-tk.Label(frame, text="Motorista").grid(row=19, column=0, sticky="w")
+tk.Label(frame, text="Motorista").grid(row=16, column=0, sticky="w")
 ttk.Combobox(frame, textvariable=lweb_motorista_var,
              values=cadastro_opcoes,
              state="readonly",
-             width=25).grid(row=19, column=1)
+             width=25).grid(row=16, column=1)
 
-tk.Label(frame, text="Cavalo").grid(row=20, column=0, sticky="w")
+tk.Label(frame, text="Cavalo").grid(row=17, column=0, sticky="w")
 ttk.Combobox(frame, textvariable=lweb_cavalo_var,
              values=cadastro_opcoes,
              state="readonly",
-             width=25).grid(row=20, column=1)
+             width=25).grid(row=17, column=1)
 
-tk.Label(frame, text="Carreta").grid(row=21, column=0, sticky="w")
+tk.Label(frame, text="Carreta").grid(row=18, column=0, sticky="w")
 ttk.Combobox(frame, textvariable=lweb_carreta_var,
              values=cadastro_opcoes,
              state="readonly",
-             width=25).grid(row=21, column=1)
+             width=25).grid(row=18, column=1)
 
 # =========================
 # BOTÕES
