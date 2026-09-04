@@ -6,7 +6,7 @@ import sys
 import requests
 
 
-VERSAO_ATUAL = "1.4.4"
+VERSAO_ATUAL = "1.4.5"
 
 def resource_path(relative_path):
     try:
@@ -85,7 +85,7 @@ def converter_status(valor):
     "Inapto": "❌ Inapto",
     "Vencido": "⚠️ Vencido",
     "Sem checklist": "❌ Sem checklist",
-
+    "Reprovado": "❌ Reprovado",
     "Cadastro": "✅ Cadastro",
     "Validar": "⚠️ Validar",
     "Atualizar cadastro": "⚠️ Atualizar cadastro",
@@ -279,7 +279,7 @@ Ano do Cavalo: {ano_cavalo}{status_ano}
 ━━━━━━━━━━━━━━━
 {frota_titulo}
 
-Checklist: {converter_status(fl_checklist_var.get())}
+Inspeção: {converter_status(fl_checklist_var.get())}
 
 ━━━━━━━━━━━━━━━
 {lweb_status}
@@ -308,17 +308,10 @@ Cavalo: {converter_status(lweb_cavalo_var.get())}{lweb_carreta}
 ━━━━━━━━━━━━━━━
 📲 CADASTRO
 
-Nosso processo de cadastro é realizado 100% pelo próprio motorista, diretamente pelo aplicativo ou via navegador.
-
-1) Passo:
+Nosso processo de cadastro é realizado 100% pelo próprio motorista, diretamente pelo aplicativo ou via navegador:
 
 📲 Baixe o aplicativo:
 https://play.google.com/store/apps/details?id=br.com.linehaul_driver&pcampaignid=web_share
-
-2) Passo:
-
-🟠 Acesse o cadastro:
-https://losunglm.com.br/cad_v2/
 
 ━━━━━━━━━━━━━━━
 📞 SUPORTE
@@ -485,7 +478,7 @@ logo_tk = ImageTk.PhotoImage(logo_img)
 
 creditos = tk.Label(
     janela,
-    text="Desenvolvido por: Nixon Deam da Silva Cavalcanti | Versão: 1.4.4",
+    text="Desenvolvido por: Nixon Deam da Silva Cavalcanti | Versão: 1.4.5",
     font=("Arial", 8),
     fg="gray40"
 )
@@ -616,7 +609,9 @@ checklist_opcoes = [
     "(SELECIONE)",
     "OK",
     "Vencido",
-    "Sem checklist"
+    "Sem checklist",
+    "Inapto",
+    "Reprovado"
 ]
 
 placa_opcoes = [
@@ -800,7 +795,7 @@ cadastro_opcoes = [
 
 fl_checklist_var = tk.StringVar(value="(SELECIONE)")
 
-tk.Label(frame, text="Checklist").grid(row=14, column=0, sticky="w")
+tk.Label(frame, text="Inspeção").grid(row=14, column=0, sticky="w")
 
 ttk.Combobox(
     frame,
