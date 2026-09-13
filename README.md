@@ -1,22 +1,22 @@
-# Validador de Cadastro
+# Registration Validator
 
-Aplicativo desenvolvido em Python para facilitar e agilizar o processo de validação de cadastros em uma empresa de logística.
+Application developed in Python to make the registration validation process faster and easier in a logistics company.
 
-O projeto surgiu a partir de uma atividade operacional que envolvia diversas verificações manuais e repetitivas. A ideia foi criar uma ferramenta própria para centralizar essas informações e tornar o processo mais rápido e padronizado.
+The project was created based on an operational activity that involved several manual and repetitive checks. The idea was to create a tool to centralize this information and make the process faster and more standardized.
 
-## Funcionalidades
+## Features
 
-- Validação de motoristas
-- Validação de placas e veículos
-- Consulta de status de cadastro
-- Validação de checklist
-- Validação de documentos
-- Regras específicas para diferentes situações
-- Geração de mensagens padronizadas
-- Atalhos de teclado para agilizar o preenchimento
-- Atualização automática da aplicação
+- Driver validation
+- Vehicle and license plate validation
+- Registration status checks
+- Checklist validation
+- Document validation
+- Specific rules for different situations
+- Standardized message generation
+- Keyboard shortcuts to speed up the process
+- Automatic application updates
 
-## Tecnologias
+## Technologies
 
 - Python
 - Tkinter
@@ -24,12 +24,12 @@ O projeto surgiu a partir de uma atividade operacional que envolvia diversas ver
 - GitHub
 - PyInstaller
 
-## Sobre o projeto
+## About the project
 
-Este foi um projeto desenvolvido a partir de uma necessidade real do ambiente de trabalho. Durante o desenvolvimento, foram aplicados conceitos de programação, lógica de negócio, validação de dados e automação de processos.
+This project was developed based on a real need in my work environment. During development, I applied programming concepts, business logic, data validation, and process automation.
 
-O objetivo principal é reduzir tarefas repetitivas e facilitar o trabalho durante as validações.
+The main goal is to reduce repetitive tasks and make the validation process easier.
 
-## Autor
+## Author
 
 Nixon Deam da Silva Cavalcanti
