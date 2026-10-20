@@ -1,35 +1,26 @@
-# Registration Validator
+# Validador de Cadastro — 2.5.7
 
-Application developed in Python to make the registration validation process faster and easier in a logistics company.
+Aplicativo desktop Tkinter para gerar validações Amazon e MELI com base nos relatórios BRK importados pelo usuário.
 
-The project was created based on an operational activity that involved several manual and repetitive checks. The idea was to create a tool to centralize this information and make the process faster and more standardized.
+## Recursos
 
-## Features
+- Importa relatórios de motorista e veículo em `.xlsx` e mantém os dados somente na memória.
+- Identifica CPFs, nomes e placas colados no campo de texto e permite ajustar os papéis das placas.
+- Consulta resultados nos relatórios locais, sem Selenium ou acesso ao site da BRK.
+- Mantém os campos de status, validade, Frota Legal, LWEB, atalhos F1–F4 e prévia da validação.
+- Permite redimensionar e rolar a interface em telas menores.
 
-- Driver validation
-- Vehicle and license plate validation
-- Registration status checks
-- Checklist validation
-- Document validation
-- Specific rules for different situations
-- Standardized message generation
-- Keyboard shortcuts to speed up the process
-- Automatic application updates
+## Executar pelo código
 
-## Technologies
+```powershell
+python -m pip install -r requirements.txt
+python app.py
+```
 
-- Python
-- Tkinter
-- Git
-- GitHub
-- PyInstaller
+## Gerar executável
 
-## About the project
+```powershell
+pyinstaller --noconfirm --clean --onefile --windowed --name ValidadorCadastro --add-data "losung.png;." app.py
+```
 
-This project was developed based on a real need in my work environment. During development, I applied programming concepts, business logic, data validation, and process automation.
-
-The main goal is to reduce repetitive tasks and make the validation process easier.
-
-## Author
-
-Nixon Deam da Silva Cavalcanti
+O `app_old.py` é mantido no repositório como a versão anterior. A versão distribuída é `ValidadorCadastro_v2.5.7.exe` na release `v2.5.7`.
